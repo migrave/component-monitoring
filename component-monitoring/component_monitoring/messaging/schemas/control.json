@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "from": {
+      "type": "string"
+    },
+    "to": {
+      "type": "string"
+    },
+    "message": {
+      "enum": [
+        "request",
+        "response",
+        "info"
+      ]
+    },
+    "body": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "from",
+    "to",
+    "message",
+    "body"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "message": {
+            "const": "request"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "monitors": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "command",
+              "monitors"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "message": {
+            "const": "response"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "properties": {
+              "code": {
+                "type": "number"
+              },
+              "monitors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "oneOf": [
+                    {
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "exception": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "topic": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "topic": {
+                      "type": "string"
+                    },
+                    "exception": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "code",
+              "status"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "message": {
+            "const": "info"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "properties": {
+              "monitors": {
+                "type": "array"
+              },
+              "actions": {
+                "type": "array"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

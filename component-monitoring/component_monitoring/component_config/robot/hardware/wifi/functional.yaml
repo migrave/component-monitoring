@@ -1,0 +1,15 @@
+name: wifi_functional_monitor
+description: Network quality and strength
+mappings:
+    - mapping:
+        inputs: []
+        outputs:
+            - output:
+                name: wifi_quality
+                type: double
+                expected: 50
+            - output:
+                name: wifi_strength
+                type: int
+                expected: -80
+        map_outputs: True

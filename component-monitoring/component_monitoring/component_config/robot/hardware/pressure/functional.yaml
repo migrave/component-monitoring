@@ -1,0 +1,23 @@
+name: pressure_functional_monitor
+description: Pressure sensor operation monitor based on consistency between redundant presssure measurements
+mappings:
+    - mapping:
+        inputs: []
+        outputs:
+            - output:
+                name: pressure_sensor_1
+                type: bool
+            - output:
+                name: pressure_sensor_2
+                type: bool
+            - output:
+                name: pressure_sensor_3
+                type: bool
+            - output:
+                name: pressure_sensor_4
+                type: bool
+arguments:
+    median_window_size: 2
+    fault_threshold: 10.0
+    number_of_wheels: 4
+    variable_name_pattern: ros_sw_ethercat_parser_data/sensors/*/pressure

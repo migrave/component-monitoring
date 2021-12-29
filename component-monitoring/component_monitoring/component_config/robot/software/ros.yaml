@@ -1,0 +1,4 @@
+component_name: ros
+description: ROS
+modes: [ros/master.yaml, ros/topics.yaml, ros/nodes.yaml]
+dependencies: []

@@ -1,0 +1,4 @@
+component_name: battery
+description: Battery
+modes: [battery/functional.yaml]
+dependencies: []

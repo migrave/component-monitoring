@@ -1,0 +1,14 @@
+rospkg
+pyyaml~=6.0
+networkx~=2.6.3
+matplotlib
+scipy
+git+https://github.com/ropod-project/black-box-tools.git
+kafka-python
+asyncio
+numpy
+pymongo~=4.0.1
+jsonschema~=4.3.2
+sqlalchemy~=1.4.29
+
+setuptools~=44.0.0

@@ -1,0 +1,17 @@
+name: diff_drive_kinematics_monitor
+description: Matching between the expected and measured pivot angular velocity
+mappings:
+    - mapping:
+        inputs: [ros_sw_ethercat_parser_data/sensors/*/velocity_1, ros_sw_ethercat_parser_data/sensors/*/velocity_2, ros_sw_ethercat_parser_data/sensors/*/velocity_pivot]
+        outputs:
+            - output:
+                name: consistent_diff_kinematics
+                type: bool
+            - output:
+                name: residual
+                type: double
+arguments:
+    number_of_wheels: 4
+    pivot_velocity_threshold: 1.0
+    wheel_diameter: 0.073
+    inter_wheel_distance: 0.0893

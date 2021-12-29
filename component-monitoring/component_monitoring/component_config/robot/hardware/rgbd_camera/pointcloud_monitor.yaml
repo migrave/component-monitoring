@@ -1,0 +1,10 @@
+name: pointcloud_monitor
+description: rgbd_camera_pointcloud_monitor_monitor
+mappings:
+    - mapping:
+        inputs: [/pointcloud]
+        outputs:
+            - output:
+                name: nan_ratio
+                type: float
+                expected: 0.65

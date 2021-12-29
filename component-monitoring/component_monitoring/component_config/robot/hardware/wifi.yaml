@@ -1,0 +1,4 @@
+component_name: wifi
+description: Wireless network
+modes: [wifi/functional.yaml]
+dependencies: []

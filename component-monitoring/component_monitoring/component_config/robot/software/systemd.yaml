@@ -1,0 +1,5 @@
+component_name: systemd
+description: System services
+modes: [systemd/services_active.yaml]
+dependencies: []
+recovery_actions: [restart]

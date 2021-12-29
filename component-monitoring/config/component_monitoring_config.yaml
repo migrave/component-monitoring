@@ -1,0 +1,35 @@
+robot_id: ropod_001
+config_dirs:
+    hardware: component_monitoring/component_config/robot/hardware
+    software: component_monitoring/component_config/robot/software
+recovery_config:
+    config_path: component_monitoring/component_config/robot/recovery_config.yaml
+    systemd_script_path: config/manage_systemd_service.sh
+robot_store_interface:
+    db_name: robot_store
+    component_collection_name: components
+    monitor_collection_name: status
+    db_port: 27017
+status_communication:
+    zyre_groups: ['MONITOR']
+black_box:
+    id: black_box_001
+    zyre_node_name: component_monitoring_query_node_ropod_001
+    zyre_groups: ['MONITOR', 'ROPOD']
+storage:
+    enable_storage: true
+    control_channel: 'monitor_manager'
+    config:
+      storage_name: sqlite
+    available_storages:
+      sqlite:
+        name: sqlite3
+        file_name: pythonsqlite.db
+        type: SQL
+        connection_string: sqlite:///pythonsqlite.db
+      mongo:
+        name: mongodb
+        database_name: component_monitoring
+        collection_name: monitor_manager
+        type: NOSQL
+        connection_string: mongodb://localhost:27017/
