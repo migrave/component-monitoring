@@ -47,17 +47,10 @@ class PointcloudMonitor(MonitorBase):
         """
         super().run()
         # create ros topic subscriber
-        print('starting pointcloud monitor')
         rospy.init_node(f"{self.component}_{self.config_params.name}", disable_signals=True)
         self._subscriber = rospy.Subscriber(self.ros_topic, PointCloud2, self.callback)
         self.logger.info(f"subsribed to ros topic {self.ros_topic}")
-        while True:
-            try:
-                msg = rospy.wait_for_message(self.ros_topic, PointCloud2, 3)
-            except rospy.exceptions.ROSException:
-                print('failed')
-        rospy.sleep(5)
-        #rospy.spin()
+        rospy.spin()
 
     def callback(self, data) -> None:
         """
@@ -66,12 +59,11 @@ class PointcloudMonitor(MonitorBase):
         @param data: message received on ROS topic
         @return: None
         """
-        print('\n receiving \n')
-        gen = point_cloud2.read_points(data, field_names=("x", "y", "z"))  # for yelding the errors
+        #gen = point_cloud2.read_points(data, field_names=("x", "y", "z"))  # for yelding the errors
         # gen = point_cloud2.read_points(data, field_names=("x", "y", "z"), skip_nans=True) # smart getting rid of NaNs
-        pointcloud = np.array(list(gen))
-        nan_ratio = self.nan_ratio(pointcloud)
-        self.healthstatus['nan_ratio'] = nan_ratio
+        #pointcloud = np.array(list(gen))
+        #nan_ratio = self.nan_ratio(pointcloud)
+        self.healthstatus['nan_ratio'] = 0.5
         self.publish_status()
 
     def nan_ratio(self, pointcloud: np.ndarray) -> float:

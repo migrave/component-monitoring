@@ -59,7 +59,6 @@ class MonitorBase(Process):
         @param msg: The event message to send
         @return: None
         """
-        print('\n sending \n')
         if isinstance(msg, bytes):
             self.producer.send(topic=self.event_topic, value=msg)
         else:
