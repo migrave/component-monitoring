@@ -21,7 +21,7 @@ The Fault Tolerant Robot Component is also able to communicate with the Data Sto
 
 The complete communication schema is depicted below with the Internal Block Diagram.
 
-![System architecture](../docs/figures/commponent_sm_comm.png)
+![System architecture](../mas_execution_manager/docs/figures/commponent_sm_comm.png)
 
 The messages sent within the Kafka message bus are in the form of JSON. There are two types of messages:
 

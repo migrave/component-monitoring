@@ -1,6 +1,0 @@
-git+https://github.com/ropod-project/ftsm.git
-kafka-python
-jsonschema
-pymongo
-numpy
-PyYAML

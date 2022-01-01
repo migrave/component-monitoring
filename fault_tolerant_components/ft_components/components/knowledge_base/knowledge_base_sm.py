@@ -2,15 +2,11 @@
 
 import rospy
 from pyftsm.ftsm import FTSMTransitions
-from component_sm_base import ComponentSMBase
-from sensor_msgs.msg import PointCloud2
+from ft_components.components.component_sm_base import ComponentSMBase
 from jsonschema import validate, ValidationError
-import logging
-import json
-import numpy as np
 
 
-class RGBDCameraSM(ComponentSMBase):
+class KnowledgeBaseSM(ComponentSMBase):
     """
     A class used to implement RGBD camera as fault tolerant component.
 
@@ -64,8 +60,6 @@ class RGBDCameraSM(ComponentSMBase):
                  monitor_manager_id,
                  storage_manager_id,
                  nans_threshold,
-                 data_input_topic,
-                 data_output_topic,
                  monitoring_control_topic,
                  monitoring_pipeline_server,
                  monitors_ids,
@@ -74,7 +68,7 @@ class RGBDCameraSM(ComponentSMBase):
                  monitoring_message_schema,
                  data_transfer_timeout,
                  max_recovery_attempts=1):
-        super(RGBDCameraSM, self).__init__('RGBDCameraSM', 
+        super(KnowledgeBaseSM, self).__init__('RGBDCameraSM',
                                            component_id=component_id,
                                            monitor_manager_id=monitor_manager_id,
                                            storage_manager_id=storage_manager_id,
@@ -125,13 +119,13 @@ class RGBDCameraSM(ComponentSMBase):
                 
                 if last_message is None:
                     # Count to three and try to turn on the monitoring one more time then
-                    # if self._no_feedback_counter >= 3:
-                    #     self._logger.warning('[{}][{}] Trying to turn on the monitoring and storage one more time.'.
-                    #                          format(self.name, self._id))
-                    #     if self.turn_on_monitoring() and self.turn_on_storage():
-                    #         self._no_feedback_counter = 0
-                    # else:
-                    #     self._no_feedback_counter += 1
+                    if self._no_feedback_counter >= 3:
+                        self._logger.warning('[{}][{}] Trying to turn on the monitoring and storage one more time.'.
+                                             format(self.name, self._id))
+                        if self.turn_on_monitoring() and self.turn_on_storage():
+                            self._no_feedback_counter = 0
+                    else:
+                        self._no_feedback_counter += 1
                     self._logger.warning('[{}][{}] No feedback from the monitoring.'.
                                          format(self.name, self._id))
 

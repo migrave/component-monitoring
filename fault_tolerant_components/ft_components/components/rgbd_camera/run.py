@@ -1,26 +1,24 @@
 #!/usr/bin/python3
 
 import rospy
-from rgbd_camera_sm import RGBDCameraSM
+from ft_components.components.rgbd_camera.rgbd_camera_sm import RGBDCameraSM
 import json
 import yaml
 
 
-if __name__ == '__main__':
-    rospy.init_node('stream_pointcloud')
+def run():
+    rospy.init_node('rgbd_camera')
 
-    general_message_format = json.load(open('../schemas/general.json'))
-    general_message_schema = json.load(open('../schemas/general.schema'))
-    monitoring_message_schema = json.load(open('../schemas/monitoring.schema'))
-    config = yaml.safe_load(open('../config/config.yaml'))
+    general_message_format = json.load(open('ft_components/schemas/general.json'))
+    general_message_schema = json.load(open('ft_components/schemas/general.schema'))
+    monitoring_message_schema = json.load(open('ft_components/schemas/monitoring.schema'))
+    config = yaml.safe_load(open('ft_components/components/rgbd_camera/config/config.yaml'))
 
     stream_pointcloud = RGBDCameraSM(
         component_id=config['id'],
         monitor_manager_id=config['monitoring']['monitor_manager_id'],
         storage_manager_id=config['monitoring']['storage_manager_id'],
         nans_threshold=config['threshold'],
-        data_input_topic=config['data_input_topics'][0],
-        data_output_topic=config['data_output_topics'][0],
         monitoring_control_topic=config['monitoring']['control_topic'],
         monitoring_pipeline_server=config['monitoring']['pipeline_server'],
         monitors_ids=config['monitoring']['monitors'],
@@ -29,7 +27,7 @@ if __name__ == '__main__':
         monitoring_message_schema=monitoring_message_schema,
         data_transfer_timeout=config['data_transfer_timeout']
     )
-    
+
     try:
         stream_pointcloud.run()
         while stream_pointcloud.is_running and not rospy.is_shutdown():
@@ -37,3 +35,7 @@ if __name__ == '__main__':
     except (KeyboardInterrupt, SystemExit):
         print('{0} interrupted; exiting...'.format(stream_pointcloud.name))
         stream_pointcloud.stop()
+
+
+if __name__ == '__main__':
+    run()

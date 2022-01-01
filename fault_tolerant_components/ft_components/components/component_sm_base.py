@@ -6,10 +6,9 @@ from kafka import KafkaConsumer, KafkaProducer
 from jsonschema import validate, ValidationError
 import json
 from bson import json_util
-import numpy as np
 from abc import abstractmethod
-from component_monitoring_enumerations import MessageType, Command, ResponseCode
-from typing import List, Optional, Dict
+from ft_components.components.component_monitoring_enumerations import MessageType, Command, ResponseCode
+from typing import List
 import logging
 import rospy
 

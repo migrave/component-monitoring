@@ -1,0 +1,7 @@
+component_name: knowledge_base
+description: Knowledge Base Component
+modes: []
+dependencies: [rgbd_camera]
+dependency_monitors:
+    functional:
+        rgbd_camera: ../hardware/rgbd_camera/pointcloud_monitor

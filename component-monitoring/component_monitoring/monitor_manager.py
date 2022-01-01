@@ -92,14 +92,14 @@ class MonitorManager(Process):
                     code = ResponseCode.SUCCESS
                     for monitor in message_body['monitors']:
                         if cmd == Command.START:
-                            try:
-                                topic = self.start_monitor(component, monitor)
-                                response['monitors'].append({"name": monitor, "topic": topic})
-                            except Exception as e:
-                                self.logger.warning(
-                                    f"Monitor of component {component} with ID {monitor} could not be started!")
-                                response['monitors'].append({"name": monitor, "exception": e})
-                                code = ResponseCode.FAILURE
+                            #try:
+                            topic = self.start_monitor(component, monitor)
+                            response['monitors'].append({"name": monitor, "topic": topic})
+                            #except Exception as e:
+                            self.logger.warning(
+                                 f"Monitor of component {component} with ID {monitor} could not be started!")
+                            response['monitors'].append({"name": monitor, "exception": e})
+                            code = ResponseCode.FAILURE
                         elif cmd == Command.SHUTDOWN:
                             try:
                                 self.stop_monitor(component, monitor)
@@ -199,6 +199,7 @@ class MonitorManager(Process):
         monitor = MonitorFactory.get_monitor(self.monitor_config[component_name].type, component_name,
                                              self.monitor_config[component_name].modes[mode_name],
                                              self.server_address, self.control_channel)
+
         try:
             self.monitors[component_name][mode_name] = monitor
         except KeyError:
