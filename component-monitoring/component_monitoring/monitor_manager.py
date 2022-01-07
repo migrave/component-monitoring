@@ -92,14 +92,14 @@ class MonitorManager(Process):
                     code = ResponseCode.SUCCESS
                     for monitor in message_body['monitors']:
                         if cmd == Command.START:
-                            #try:
-                            topic = self.start_monitor(component, monitor)
-                            response['monitors'].append({"name": monitor, "topic": topic})
-                            #except Exception as e:
-                            self.logger.warning(
-                                 f"Monitor of component {component} with ID {monitor} could not be started!")
-                            response['monitors'].append({"name": monitor, "exception": e})
-                            code = ResponseCode.FAILURE
+                            try:
+                                topic = self.start_monitor(component, monitor)
+                                response['monitors'].append({"name": monitor, "topic": topic})
+                            except Exception as e:
+                                self.logger.warning(
+                                    f"Monitor of component {component} with ID {monitor} could not be started!")
+                                response['monitors'].append({"name": monitor, "exception": e})
+                                code = ResponseCode.FAILURE
                         elif cmd == Command.SHUTDOWN:
                             try:
                                 self.stop_monitor(component, monitor)
@@ -184,6 +184,21 @@ class MonitorManager(Process):
         self.monitors[component_name][mode_name].terminate()
         del self.monitors[component_name][mode_name]
 
+    def get_dependencies(self, mode_name):
+        for component in self.monitor_config:
+            if self.monitor_config[component].dependency_monitors:
+                for dependency_monitor_type in self.monitor_config[component].dependency_monitors:
+                    for dependency_component in self.monitor_config[component].dependency_monitors[dependency_monitor_type]:
+                        monitor = self.monitor_config[component].dependency_monitors[dependency_monitor_type][dependency_component].split('/')[-1]
+                        if monitor == mode_name:
+                            return dependency_component, monitor
+
+    def check_monitors(self, component_name, mode_name):
+        for monitor in self.monitor_config[component_name].modes:
+            if monitor == mode_name:
+                return True
+        return False
+
     def start_monitor(self, component_name: str, mode_name: str) -> Optional[str]:
         """
         Start a single monitor, specified by its component and mode name
@@ -193,18 +208,40 @@ class MonitorManager(Process):
         @return: If the monitor does not exist yet, returns the event topic the monitor is publishing on. Else, None is
         returned.
         """
-        if component_name in self.monitors and mode_name in self.monitors[component_name]:
-            self.logger.warning(f"Monitor {mode_name} of {component_name} is already started!")
-            return self.monitors[component_name][mode_name].event_topic
-        monitor = MonitorFactory.get_monitor(self.monitor_config[component_name].type, component_name,
-                                             self.monitor_config[component_name].modes[mode_name],
-                                             self.server_address, self.control_channel)
-
         try:
-            self.monitors[component_name][mode_name] = monitor
+            if self.check_monitors(component_name, mode_name):
+                component = component_name
+                mode = mode_name
+
+                if component_name in self.monitors and mode_name in self.monitors[component_name]:
+                    self.logger.warning(f"Monitor {mode_name} of {component_name} is already started!")
+                    return self.monitors[component_name][mode_name].event_topic
+
+                monitor = MonitorFactory.get_monitor(self.monitor_config[component_name].type, component_name,
+                                                     self.monitor_config[component_name].modes[mode_name],
+                                                     self.server_address, self.control_channel)
+
+                self.monitors[component_name][mode_name] = monitor
+
+            else:
+                dependency_name, dependency_monitor_name = self.get_dependencies(mode_name)
+                component = dependency_name
+                mode = dependency_monitor_name
+
+                if dependency_name in self.monitors and dependency_monitor_name in self.monitors[dependency_name]:
+                    self.logger.warning(f"Monitor {mode_name} of {component_name} is already started!")
+                    return self.monitors[component_name][mode_name].event_topic
+
+                monitor = MonitorFactory.get_monitor(self.monitor_config[dependency_name].type, dependency_name,
+                                                     self.monitor_config[dependency_name].modes[dependency_monitor_name],
+                                                     self.server_address, self.control_channel)
+
+                self.monitors[dependency_name][dependency_monitor_name] = monitor
+
         except KeyError:
-            self.monitors[component_name] = dict()
-            self.monitors[component_name][mode_name] = monitor
+            self.monitors[component] = dict()
+            self.monitors[component][mode] = monitor
+
         monitor.start()
         return monitor.event_topic
 
@@ -213,7 +250,7 @@ class MonitorManager(Process):
         Send an INFO message over the control channel.
 
         @param receiver: The component the message is addressed to
-        @param info: The information string to be sent
+        @param info: The information string to be senSt
         @return: None
         """
         message = dict()
