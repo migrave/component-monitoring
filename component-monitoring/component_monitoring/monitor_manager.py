@@ -208,6 +208,7 @@ class MonitorManager(Process):
         @return: If the monitor does not exist yet, returns the event topic the monitor is publishing on. Else, None is
         returned.
         """
+        monitor = None
         try:
             if self.check_monitors(component_name, mode_name):
                 component = component_name
@@ -229,8 +230,8 @@ class MonitorManager(Process):
                 mode = dependency_monitor_name
 
                 if dependency_name in self.monitors and dependency_monitor_name in self.monitors[dependency_name]:
-                    self.logger.warning(f"Monitor {mode_name} of {component_name} is already started!")
-                    return self.monitors[component_name][mode_name].event_topic
+                    self.logger.warning(f"Monitor {dependency_monitor_name} of {dependency_name} is already started!")
+                    return self.monitors[dependency_name][dependency_monitor_name].event_topic
 
                 monitor = MonitorFactory.get_monitor(self.monitor_config[dependency_name].type, dependency_name,
                                                      self.monitor_config[dependency_name].modes[dependency_monitor_name],
