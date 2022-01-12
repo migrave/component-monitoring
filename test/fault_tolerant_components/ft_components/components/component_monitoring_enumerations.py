@@ -26,6 +26,7 @@ class Command(Enum):
     START_STORE = 'start_store'
     STOP_STORE = 'stop_store'
 
+
 class ResponseCode(Enum):
     """
     A class containing response codes returned by the monitoring or data storage.
@@ -41,6 +42,7 @@ class ResponseCode(Enum):
     """
     SUCCESS = 200
     FAILURE = 400
+
 
 class MessageType(Enum):
     """

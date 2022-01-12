@@ -68,7 +68,7 @@ class KnowledgeBaseSM(ComponentSMBase):
                  monitoring_message_schema,
                  data_transfer_timeout,
                  max_recovery_attempts=1):
-        super(KnowledgeBaseSM, self).__init__('RGBDCameraSM',
+        super(KnowledgeBaseSM, self).__init__('KnowledgeBaseSM',
                                            component_id=component_id,
                                            monitor_manager_id=monitor_manager_id,
                                            storage_manager_id=storage_manager_id,

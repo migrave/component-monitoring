@@ -103,10 +103,10 @@ class ComponentSMBase(FTSM):
         # Kafka monitor feedback listener placeholder
         self._monitor_feedback_listener = None
 
-        #flag if kafka communication is working
+        # flag if kafka communication is working
         self._is_kafka_available = False
 
-        #connecting to kafka
+        # connecting to kafka
         self.__connect_to_control_pipeline()
 
     @abstractmethod
@@ -123,7 +123,7 @@ class ComponentSMBase(FTSM):
         '''
         retry_counter = 0
 
-        while not self._is_kafka_available and retry_counter < 3 :
+        while not self._is_kafka_available and retry_counter < 3:
             retry_counter += 1
             self._is_kafka_available = self.__init_control_pipeline()
             if not self._is_kafka_available:
@@ -138,7 +138,7 @@ class ComponentSMBase(FTSM):
             self._logger.warning('[{}][{}] No kafka server detected. Component will start without monitoring.'.
                                  format(self.name, self._id))
 
-    def __init_listener(self, topics: List[str]) ->  KafkaConsumer:
+    def __init_listener(self, topics: List[str]) -> KafkaConsumer:
         '''
         Function responsible for initializing the kafka consumer.
             
@@ -236,8 +236,9 @@ class ComponentSMBase(FTSM):
             monitors = list()
 
             if not self._monitoring_feedback_topics:
-                self._logger.warning('[{}][{}] Attempted to run database component, but topics names with events were not received'.
-                                     format(self.name, self._id))
+                self._logger.warning(
+                    '[{}][{}] Attempted to run database component, but topics names with events were not received'.
+                    format(self.name, self._id))
                 return False
 
             for monitor, topic in zip(self._monitors_ids, self._monitoring_feedback_topics):
@@ -285,18 +286,19 @@ class ComponentSMBase(FTSM):
                 message_type = MessageType(message.value['message'])
 
                 if self._id == message.value['to'] and \
-                    self._monitor_manager_id == message.value['from'] and \
+                        self._monitor_manager_id == message.value['from'] and \
                         message_type == MessageType.RESPONSE:
                     response_code = ResponseCode(message.value['body']['code'])
                     if response_code == ResponseCode.SUCCESS:
                         if command == Command.START:
                             for monitor in message.value['body']['monitors']:
-                                topics = [0]*len(self._monitors_ids)
+                                topics = [0] * len(self._monitors_ids)
                                 index = self._monitors_ids.index(monitor['name'])
                                 topics[index] = monitor['topic']
                                 self.init_monitor_feedback_listener(topics)
                             self._logger.info('[{}][{}] Received kafka topics for monitors: {}. The topics are: {}.'.
-                                              format(self.name, self._id, self._monitors_ids, self._monitoring_feedback_topics))
+                                              format(self.name, self._id, self._monitors_ids,
+                                                     self._monitoring_feedback_topics))
                         return True
                     else:
                         return False
@@ -391,7 +393,6 @@ class ComponentSMBase(FTSM):
 
         return success
 
-
     def turn_off_monitoring(self) -> bool:
         '''
         Function responsible for turning off the monitors responsible for monitoring the current component.
@@ -402,7 +403,7 @@ class ComponentSMBase(FTSM):
         '''
         return self.__switch(device='monitoring', mode='off')
 
-    def turn_on_monitoring(self):
+    def turn_on_monitoring(self) -> bool:
         '''
         Function responsible for turning on the monitors responsible for monitoring the current component.
             
@@ -412,7 +413,7 @@ class ComponentSMBase(FTSM):
         '''
         return self.__switch(device='monitoring', mode='on')
 
-    def turn_on_storage(self):
+    def turn_on_storage(self) -> bool:
         '''
         Function responsible for turning on the data storage.
             
@@ -422,7 +423,7 @@ class ComponentSMBase(FTSM):
         '''
         return self.__switch(device='database', mode='on')
 
-    def turn_off_storage(self):
+    def turn_off_storage(self) -> bool:
         '''
         Function responsible for turning off the data storage.
             
@@ -432,7 +433,7 @@ class ComponentSMBase(FTSM):
         '''
         return self.__switch(device='database', mode='off')
 
-    def running(self):
+    def running(self) -> str:
         '''
         Method for the behaviour of a component during active operation.
 
@@ -441,7 +442,7 @@ class ComponentSMBase(FTSM):
         '''
         return FTSMTransitions.DONE
 
-    def recovering(self):
+    def recovering(self) -> str:
         '''
         Method for component recovery.
 

@@ -126,16 +126,17 @@ class RGBDCameraSM(ComponentSMBase):
                         if success:
                             self._logger.warning("Turned off monitoring")
                         else:
-                            self._logger.warning("NOT Turned off monitoring")
+                            self._logger.warning("Not turned off monitoring")
 
                         success = self.turn_off_storage()
                         if success:
                             self._logger.warning("Turned off storage")
                         else:
-                            self._logger.warning("NOT Turned off storage")
+                            self._logger.warning("Not turned off storage")
 
                         self._logger.warning("Waiting...")
                         rospy.sleep(5)
+
                         if self.turn_on_monitoring() and self.turn_on_storage():
                             self._no_feedback_counter = 0
                     else:
