@@ -124,8 +124,8 @@ class KnowledgeBaseSM(ComponentSMBase):
                                              format(self.name, self._id))
                         if self.turn_on_monitoring() and self.turn_on_storage():
                             self._no_feedback_counter = 0
-                    else:
-                        self._no_feedback_counter += 1
+                    #else:
+                        #self._no_feedback_counter += 1
                     self._logger.warning('[{}][{}] No feedback from the monitoring.'.
                                          format(self.name, self._id))
 

@@ -4,6 +4,7 @@ from os.path import abspath, dirname, join
 from typing import Sequence
 import networkx as nx
 import matplotlib.pyplot as plt
+import argparse
 
 from component_monitoring.config.config_params import ComponentMonitorConfig
 from component_monitoring.config.config_utils import ConfigUtils
@@ -85,8 +86,17 @@ class ComponentNetwork(object):
                 network.add_edge(component.component_name, dependency)
         return network
 
+
 if __name__ == '__main__':
-    config_file = 'config/component_monitoring_config.yaml'
+    parser = argparse.ArgumentParser(description='Components dependency graph plotter',
+                                     epilog='EXAMPLE: python3 -m component_monitoring.utils.component_network config/component_monitoring_config.yaml')
+    parser.add_argument('-config_file', type=str,
+                        default='config/component_monitoring_config.yaml',
+                        help='Path to a configuration file')
+
+    args = parser.parse_args()
+
+    config_file = args.config_file
     component_network = ComponentNetwork(config_file)
     nx.draw_planar(component_network.network, with_labels=True)
     plt.show()

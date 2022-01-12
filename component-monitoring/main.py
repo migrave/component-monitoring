@@ -4,7 +4,6 @@ import multiprocessing
 
 from component_monitoring.config.config_utils import ConfigUtils
 from component_monitoring.monitor_manager import MonitorManager
-from component_monitoring.utils.component_network import ComponentNetwork
 
 import logging
 

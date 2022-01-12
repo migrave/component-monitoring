@@ -54,6 +54,8 @@ class MonitorManager(Process):
             self.component_descriptions[monitor_config.component_name] = monitor_config.description
             self.monitor_config[monitor_config.component_name] = monitor_config
 
+        self.monitors_subscribers = {}
+
     def __send_control_message(self, msg: Dict) -> FutureRecordMetadata:
         """
         Send a control message over the control channel
@@ -181,10 +183,24 @@ class MonitorManager(Process):
         @param mode_name: The mode name of the monitor
         @return: None
         """
+        component = component_name
+        mode = mode_name
+        if not self.check_component_to_monitor_correspondence(component_name, mode_name):
+            component, mode = self.get_monitored_component(mode_name)
+
+        if component not in self.monitors_subscribers[mode]:
+            raise RuntimeError("Could not turn off the {} monitor, component {} is not registered.".format(mode, component))
+
+        self.monitors_subscribers[mode].remove(component)
+        self.logger.info("Unregistering component {} from subscribing to {} monitor".format(component, mode))
+
+        if self.monitors_subscribers[mode]:
+            raise RuntimeError("Could not turn off the {} monitor, there are still subscribers to its topic.".format(mode))
+
         self.monitors[component_name][mode_name].terminate()
         del self.monitors[component_name][mode_name]
 
-    def get_dependencies(self, mode_name):
+    def get_monitored_component(self, mode_name):
         for component in self.monitor_config:
             if self.monitor_config[component].dependency_monitors:
                 for dependency_monitor_type in self.monitor_config[component].dependency_monitors:
@@ -193,7 +209,7 @@ class MonitorManager(Process):
                         if monitor == mode_name:
                             return dependency_component, monitor
 
-    def check_monitors(self, component_name, mode_name):
+    def check_component_to_monitor_correspondence(self, component_name, mode_name):
         for monitor in self.monitor_config[component_name].modes:
             if monitor == mode_name:
                 return True
@@ -208,9 +224,18 @@ class MonitorManager(Process):
         @return: If the monitor does not exist yet, returns the event topic the monitor is publishing on. Else, None is
         returned.
         """
+
+        if mode_name not in self.monitors_subscribers:
+            self.monitors_subscribers[mode_name] = []
+
+        # WARNING! This should be refactored due to the possibility there will come request to run component-monitor
+        # combination that is not allowed in the configuration of component-monitoring
+        if component_name not in self.monitors_subscribers[mode_name]:
+            self.monitors_subscribers[mode_name].append(component_name)
+
         monitor = None
         try:
-            if self.check_monitors(component_name, mode_name):
+            if self.check_component_to_monitor_correspondence(component_name, mode_name):
                 component = component_name
                 mode = mode_name
 
@@ -225,7 +250,7 @@ class MonitorManager(Process):
                 self.monitors[component_name][mode_name] = monitor
 
             else:
-                dependency_name, dependency_monitor_name = self.get_dependencies(mode_name)
+                dependency_name, dependency_monitor_name = self.get_monitored_component(mode_name)
                 component = dependency_name
                 mode = dependency_monitor_name
 
