@@ -2,6 +2,13 @@
 import argparse
 import logging
 from ft_components.components.rgbd_camera.run import run as run_rgbd_camera
+import signal
+import sys
+
+
+def interuppt_handler(signum, frame):
+    sys.exit(-2)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Fault tolerant components status',
@@ -15,4 +22,5 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.WARNING)
 
+    signal.signal(signal.SIGINT, interuppt_handler)
     run_rgbd_camera()

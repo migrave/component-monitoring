@@ -2,7 +2,7 @@
 
 from pyftsm.ftsm import FTSM, FTSMTransitions
 import kafka
-from kafka import KafkaConsumer, KafkaProducer
+from kafka import KafkaConsumer, KafkaProducer, TopicPartition
 from jsonschema import validate, ValidationError
 import json
 from bson import json_util
@@ -109,6 +109,19 @@ class ComponentSMBase(FTSM):
         # connecting to kafka
         self.__connect_to_control_pipeline()
 
+    def stop(self):
+        while not self.turn_off_monitoring():
+            rospy.sleep(2)
+            pass
+        while not self.turn_off_storage():
+            rospy.sleep(2)
+            pass
+
+        self._monitor_feedback_listener.unsubscribe()
+        self._monitor_control_listener.unsubscribe()
+
+        super(ComponentSMBase, self).stop()
+
     @abstractmethod
     def handle_monitoring_feedback(self):
         """
@@ -156,7 +169,6 @@ class ComponentSMBase(FTSM):
 
         listener = \
             KafkaConsumer(
-                *topics,
                 client_id=self._id,
                 group_id=self._id + '_' + listener_type,
                 bootstrap_servers=self._monitoring_pipeline_server,
@@ -166,6 +178,10 @@ class ComponentSMBase(FTSM):
                 auto_offset_reset='latest',
                 consumer_timeout_ms=self._monitoring_timeout * 1000
             )
+        assignments = [TopicPartition(topic, 0) for topic in topics]
+        listener.assign(assignments)
+        for assignment in assignments:
+            listener.seek_to_end(assignment)
         return listener
 
     def __init_control_listener(self, topics: List[str]):
@@ -313,6 +329,7 @@ class ComponentSMBase(FTSM):
             start_time = rospy.Time.now()
 
             for message in self._monitor_control_listener:
+                print(message)
 
                 # Validate the correctness of the message
                 validate(
@@ -458,7 +475,7 @@ class ComponentSMBase(FTSM):
                 bool: True - turning on the data storage ended successfully
                       False - turning on the data storage ended with failure
         """
-        return self.__switch(device='database', mode='on')
+        return True #return self.__switch(device='database', mode='on')
 
     def turn_off_storage(self) -> bool:
         """
@@ -468,7 +485,7 @@ class ComponentSMBase(FTSM):
                 bool: True - turning off the data storage ended successfully
                       False - turning off the data storage ended with failure
         """
-        return self.__switch(device='database', mode='off')
+        return True #return self.__switch(device='database', mode='off')
 
     def running(self) -> str:
         """

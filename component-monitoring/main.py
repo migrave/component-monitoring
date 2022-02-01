@@ -56,9 +56,9 @@ if __name__ == '__main__':
 
     try:
         monitor_manager.start()
-        storage_manager.start()
+        #storage_manager.start()
         monitor_manager.join()
-        storage_manager.join()
+        #storage_manager.join()
 
     except (KeyboardInterrupt, SystemExit):
         monitor_manager.log_off()

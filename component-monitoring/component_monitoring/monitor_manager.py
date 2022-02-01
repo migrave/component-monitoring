@@ -5,7 +5,7 @@ from typing import List, Optional, Dict
 
 from bson import json_util
 from jsonschema import validate
-from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaProducer, KafkaConsumer, TopicPartition
 from kafka.consumer.fetcher import ConsumerRecord
 from kafka.producer.future import FutureRecordMetadata
 
@@ -78,7 +78,10 @@ class MonitorManager(Process):
                                       auto_commit_interval_ms=1000,
                                       auto_offset_reset='latest',
                                       enable_auto_commit=True)
-        self.consumer.subscribe([self.control_channel])
+        assignment = TopicPartition(self.control_channel, 0)
+        self.consumer.assign([assignment])
+        self.consumer.seek_to_end(assignment)
+
         self.producer = KafkaProducer(bootstrap_servers=self.server_address, value_serializer=self.serialize)
         for msg in self.consumer:
             self.logger.info(f"Processing {msg.value}")
