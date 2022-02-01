@@ -71,8 +71,13 @@ class MonitorBase(Process):
         @return: None
         """
         self.producer = KafkaProducer(bootstrap_servers=self.server_address)
-        self.consumer = KafkaConsumer(bootstrap_servers=self.server_address, client_id=self.config_params.name,
-                                      enable_auto_commit=True, auto_commit_interval_ms=5000)
+        self.consumer = KafkaConsumer(bootstrap_servers=self.server_address,
+                                      client_id=self.config_params.name,
+                                      group_id=self.config_params.name,
+                                      enable_auto_commit=True,
+                                      auto_commit_interval_ms=1000,
+                                      auto_offset_reset='latest')
+
         self.consumer.subscribe([self.event_topic, self.control_topic])
 
     def serialize(self, msg: Dict) -> bytes:

@@ -90,7 +90,7 @@ class StorageManager(Process):
         this method attaches the kafka consumer to available Kafka Topics
         """
         self.consumer = KafkaConsumer(bootstrap_servers=self.server_address, client_id='storage_manager',
-                                      enable_auto_commit=True, auto_commit_interval_ms=5000)
+                                      enable_auto_commit=True, auto_commit_interval_ms=5000, group_id='storage_manager')
         self.producer = KafkaProducer(bootstrap_servers=self.server_address, value_serializer=serialize)
         if self.storage_config['enable_storage']:
             topics = [self.storage_config['control_channel']]

@@ -72,8 +72,12 @@ class MonitorManager(Process):
 
         @return: None
         """
-        self.consumer = KafkaConsumer(bootstrap_servers=self.server_address, client_id='manager',
-                                      enable_auto_commit=True, auto_commit_interval_ms=5000)
+        self.consumer = KafkaConsumer(bootstrap_servers=self.server_address,
+                                      client_id='manager',
+                                      group_id='manager',
+                                      auto_commit_interval_ms=1000,
+                                      auto_offset_reset='latest',
+                                      enable_auto_commit=True)
         self.consumer.subscribe([self.control_channel])
         self.producer = KafkaProducer(bootstrap_servers=self.server_address, value_serializer=self.serialize)
         for msg in self.consumer:
