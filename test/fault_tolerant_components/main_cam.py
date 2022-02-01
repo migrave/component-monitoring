@@ -6,7 +6,7 @@ import signal
 import sys
 
 
-def interuppt_handler(signum, frame):
+def interrupt_handler(signum, frame):
     sys.exit(-2)
 
 
@@ -22,5 +22,5 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.WARNING)
 
-    signal.signal(signal.SIGINT, interuppt_handler)
+    signal.signal(signal.SIGINT, interrupt_handler)
     run_rgbd_camera()

@@ -55,7 +55,8 @@ class KnowledgeBaseSM(ComponentSMBase):
     max_recovery_attempts : int
         Maximum number of attempts to recover
     """
-    def __init__(self, 
+
+    def __init__(self,
                  component_id,
                  monitor_manager_id,
                  storage_manager_id,
@@ -69,19 +70,19 @@ class KnowledgeBaseSM(ComponentSMBase):
                  data_transfer_timeout,
                  max_recovery_attempts=1):
         super(KnowledgeBaseSM, self).__init__('KnowledgeBaseSM',
-                                           component_id=component_id,
-                                           monitor_manager_id=monitor_manager_id,
-                                           storage_manager_id=storage_manager_id,
-                                           dependencies=[], 
-                                           max_recovery_attempts=max_recovery_attempts,
-                                           monitoring_control_topic=monitoring_control_topic,
-                                           monitoring_pipeline_server=monitoring_pipeline_server,
-                                           monitors_ids=monitors_ids,
-                                           general_message_format=general_message_format,
-                                           general_message_schema=general_message_schema,
-                                           monitoring_message_schemas=[monitoring_message_schema],
-                                           monitoring_timeout=5)
-        
+                                              component_id=component_id,
+                                              monitor_manager_id=monitor_manager_id,
+                                              storage_manager_id=storage_manager_id,
+                                              dependencies=[],
+                                              max_recovery_attempts=max_recovery_attempts,
+                                              monitoring_control_topic=monitoring_control_topic,
+                                              monitoring_pipeline_server=monitoring_pipeline_server,
+                                              monitors_ids=monitors_ids,
+                                              general_message_format=general_message_format,
+                                              general_message_schema=general_message_schema,
+                                              monitoring_message_schemas=[monitoring_message_schema],
+                                              monitoring_timeout=5)
+
         self._pointcloud = None
         self._timeout = data_transfer_timeout
         self._nans_threshold = nans_threshold
@@ -104,7 +105,7 @@ class KnowledgeBaseSM(ComponentSMBase):
                 for message in self._monitor_feedback_listener:
                     # Validate the correctness of the message
                     validate(instance=message.value, schema=self._monitoring_message_schemas[0])
-                    
+
                     last_message = message
 
                     time_now = rospy.Time.now()
@@ -116,7 +117,7 @@ class KnowledgeBaseSM(ComponentSMBase):
                     else:
                         self._logger.info('[{}][{}] Received poincloud contains acceptable number of NaN values.'.
                                           format(self.name, self._id))
-                
+
                 if last_message is None:
                     # Count to three and try to turn on the monitoring one more time then
                     if self._no_feedback_counter >= 3:
@@ -124,8 +125,8 @@ class KnowledgeBaseSM(ComponentSMBase):
                                              format(self.name, self._id))
                         if self.turn_on_monitoring() and self.turn_on_storage():
                             self._no_feedback_counter = 0
-                    #else:
-                        #self._no_feedback_counter += 1
+                    # else:
+                    # self._no_feedback_counter += 1
                     self._logger.warning('[{}][{}] No feedback from the monitoring.'.
                                          format(self.name, self._id))
 
@@ -134,29 +135,29 @@ class KnowledgeBaseSM(ComponentSMBase):
                                  format(self.name, self._id))
 
     def operation_without_monitoring(self):
-        '''
-        Function specyfing the behaviour of the component when the monitoring can not be anbled. 
-        '''
+        """
+        Function specyfing the behaviour of the component when the monitoring can not be anbled.
+        """
         self._logger.info('[{}][{}] Component operates without monitoring.'.
                           format(self.name, self._id))
         rospy.sleep(2)
 
     def operation_with_monitoring(self):
-        '''
-        Function specyfing the behaviour of the component when the monitoring can be anbled. 
-            
+        """
+        Function specyfing the behaviour of the component when the monitoring can be anbled.
+
             Returns:
-                str: State of the Fault Tolerant State Machine         
-        '''
-        return self.handle_monitoring_feedback() 
+                str: State of the Fault Tolerant State Machine
+        """
+        return self.handle_monitoring_feedback()
 
     def running(self):
-        '''
+        """
         Method for the behaviour of a component during active operation.
 
             Returns:
-                str: State of the Fault Tolerant State Machine 
-        '''
+                str: State of the Fault Tolerant State Machine
+        """
         if self._is_kafka_available and \
                 self._ftsm_transition is not FTSMTransitions.RECOVER:
 
@@ -181,16 +182,16 @@ class KnowledgeBaseSM(ComponentSMBase):
         #     self.turn_off_storage()
         #     self._monitoring_database_connection_established = False
         #     self._ftsm_transition = FTSMTransitions.RECONFIGURE
-        #return FTSMTransitions.RECONFIGURE
+        # return FTSMTransitions.RECONFIGURE
         return FTSMTransitions.CONTINUE
 
     def recovering(self):
-        '''
+        """
         Method for component recovery.
 
             Returns:
-                str: State of the Fault Tolerant State Machine 
-        '''
+                str: State of the Fault Tolerant State Machine
+        """
         self._logger.info('[{}][{}] Now I am recovering the RGBD CAMERA by moving the head'.
                           format(self.name, self._id))
 
@@ -203,12 +204,12 @@ class KnowledgeBaseSM(ComponentSMBase):
         return FTSMTransitions.DONE_RECOVERING
 
     def configuring(self):
-        '''
+        """
         Method for component configuration/reconfiguration.
 
             Returns:
-                str: State of the Fault Tolerant State Machine 
-        '''
+                str: State of the Fault Tolerant State Machine
+        """
         self._logger.info('[{}][{}] Now I am reconfiguring the head RGBD camera by resetting the message bus'.
                           format(self.name, self._id))
 

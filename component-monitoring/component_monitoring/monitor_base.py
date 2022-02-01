@@ -5,7 +5,7 @@ from typing import Union, Dict
 
 from bson import json_util
 from jsonschema import validate
-from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaProducer, KafkaConsumer, TopicPartition
 
 from component_monitoring.config.config_params import MonitorModeConfig
 
@@ -78,7 +78,10 @@ class MonitorBase(Process):
                                       auto_commit_interval_ms=1000,
                                       auto_offset_reset='latest')
 
-        self.consumer.subscribe([self.event_topic, self.control_topic])
+        assignments = [TopicPartition(topic, 0) for topic in [self.event_topic, self.control_topic]]
+        self.consumer.assign(assignments)
+        for assignment in assignments:
+            self.consumer.seek_to_end(assignment)
 
     def serialize(self, msg: Dict) -> bytes:
         """

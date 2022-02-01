@@ -120,6 +120,11 @@ class ComponentSMBase(FTSM):
         self._monitor_feedback_listener.unsubscribe()
         self._monitor_control_listener.unsubscribe()
 
+        self._monitor_feedback_listener.close()
+        self._monitor_control_listener.close()
+
+        self._monitor_control_producer.close()
+
         super(ComponentSMBase, self).stop()
 
     @abstractmethod

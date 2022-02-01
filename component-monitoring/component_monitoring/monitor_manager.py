@@ -129,6 +129,14 @@ class MonitorManager(Process):
         for component in self.monitors.keys():
             self.send_info(component, "manager shutting down")
 
+        self.consumer.unsubscribe()
+        self.consumer.unsubscribe()
+
+        self.consumer.close()
+        self.consumer.close()
+
+        self.producer.close()
+
     def serialize(self, msg) -> bytes:
         """
         Serializes any message to be sent via the Kafka message bus
@@ -196,13 +204,15 @@ class MonitorManager(Process):
             component, mode = self.get_monitored_component(mode_name)
 
         if component not in self.monitors_subscribers[mode]:
-            raise RuntimeError("Could not turn off the {} monitor, component {} is not registered.".format(mode, component))
+            raise RuntimeError(
+                "Could not turn off the {} monitor, component {} is not registered.".format(mode, component))
 
         self.monitors_subscribers[mode].remove(component)
         self.logger.info("Unregistering component {} from subscribing to {} monitor".format(component, mode))
 
         if self.monitors_subscribers[mode]:
-            raise RuntimeError("Could not turn off the {} monitor, there are still subscribers to its topic.".format(mode))
+            raise RuntimeError(
+                "Could not turn off the {} monitor, there are still subscribers to its topic.".format(mode))
 
         self.monitors[component_name][mode_name].terminate()
         del self.monitors[component_name][mode_name]
@@ -211,8 +221,10 @@ class MonitorManager(Process):
         for component in self.monitor_config:
             if self.monitor_config[component].dependency_monitors:
                 for dependency_monitor_type in self.monitor_config[component].dependency_monitors:
-                    for dependency_component in self.monitor_config[component].dependency_monitors[dependency_monitor_type]:
-                        monitor = self.monitor_config[component].dependency_monitors[dependency_monitor_type][dependency_component].split('/')[-1]
+                    for dependency_component in self.monitor_config[component].dependency_monitors[
+                        dependency_monitor_type]:
+                        monitor = self.monitor_config[component].dependency_monitors[dependency_monitor_type][
+                            dependency_component].split('/')[-1]
                         if monitor == mode_name:
                             return dependency_component, monitor
 
@@ -266,7 +278,8 @@ class MonitorManager(Process):
                     return self.monitors[dependency_name][dependency_monitor_name].event_topic
 
                 monitor = MonitorFactory.get_monitor(self.monitor_config[dependency_name].type, dependency_name,
-                                                     self.monitor_config[dependency_name].modes[dependency_monitor_name],
+                                                     self.monitor_config[dependency_name].modes[
+                                                         dependency_monitor_name],
                                                      self.server_address, self.control_channel)
 
                 self.monitors[dependency_name][dependency_monitor_name] = monitor
