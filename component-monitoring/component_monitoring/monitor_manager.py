@@ -130,13 +130,12 @@ class MonitorManager(Process):
         for component in self.monitors.keys():
             self.send_info(component, "manager shutting down")
 
-        self.consumer.unsubscribe()
-        self.consumer.unsubscribe()
+        if self.consumer is not None:
+            self.consumer.unsubscribe()
+            self.consumer.close()
 
-        self.consumer.close()
-        self.consumer.close()
-
-        self.producer.close()
+        if self.producer is not None:
+            self.producer.close()
 
     def serialize(self, msg) -> bytes:
         """

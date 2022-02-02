@@ -31,6 +31,13 @@ class MonitorBase(Process):
             self.event_schema = json.load(schema)
         self.healthstatus = {}
 
+    def __del__(self):
+        if self.consumer is not None:
+            self.consumer.unsubscribe()
+            self.consumer.close()
+        if self.producer is not None:
+            self.producer.close()
+
     def get_status_message_template(self) -> Dict:
         """
         Get the basic event message template

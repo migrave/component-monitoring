@@ -120,13 +120,16 @@ class ComponentSMBase(FTSM):
                 break
             rospy.sleep(2)
 
-        self._monitor_feedback_listener.unsubscribe()
-        self._monitor_control_listener.unsubscribe()
+        if self._monitor_feedback_listener is not None:
+            self._monitor_feedback_listener.unsubscribe()
+            self._monitor_feedback_listener.close()
 
-        self._monitor_feedback_listener.close()
-        self._monitor_control_listener.close()
+        if self._monitor_control_listener is not None:
+            self._monitor_control_listener.unsubscribe()
+            self._monitor_control_listener.close()
 
-        self._monitor_control_producer.close()
+        if self._monitor_control_producer is not None:
+            self._monitor_control_producer.close()
 
         super(ComponentSMBase, self).stop()
 
