@@ -26,6 +26,7 @@ class MonitorManager(Process):
                  server_address: str = 'localhost:9092',
                  control_channel: str = 'monitor_manager'):
         Process.__init__(self)
+        self.monitoring = None
         self.logger = logging.getLogger('monitor_manager')
         self.logger.setLevel(logging.INFO)
 
@@ -200,8 +201,6 @@ class MonitorManager(Process):
         """
         component = component_name
         mode = mode_name
-        if not self.check_component_to_monitor_correspondence(component_name, mode_name):
-            component, mode = self.get_monitored_component(mode_name)
 
         if component not in self.monitors_subscribers[mode]:
             raise RuntimeError(
@@ -214,15 +213,18 @@ class MonitorManager(Process):
             raise RuntimeError(
                 "Could not turn off the {} monitor, there are still subscribers to its topic.".format(mode))
 
-        self.monitors[component_name][mode_name].terminate()
-        del self.monitors[component_name][mode_name]
+        if not self.check_component_to_monitor_correspondence(component, mode):
+            component, mode = self.get_monitored_component(mode)
+
+        self.monitors[component][mode].terminate()
+        del self.monitors[component][mode]
 
     def get_monitored_component(self, mode_name):
         for component in self.monitor_config:
             if self.monitor_config[component].dependency_monitors:
                 for dependency_monitor_type in self.monitor_config[component].dependency_monitors:
-                    for dependency_component in self.monitor_config[component].dependency_monitors[
-                        dependency_monitor_type]:
+                    for dependency_component in self.monitor_config[component].\
+                            dependency_monitors[dependency_monitor_type]:
                         monitor = self.monitor_config[component].dependency_monitors[dependency_monitor_type][
                             dependency_component].split('/')[-1]
                         if monitor == mode_name:

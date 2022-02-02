@@ -110,12 +110,15 @@ class ComponentSMBase(FTSM):
         self.__connect_to_control_pipeline()
 
     def stop(self):
-        while not self.turn_off_monitoring():
+        for i in range(2):
+            if self.turn_off_monitoring():
+                break
             rospy.sleep(2)
-            pass
-        while not self.turn_off_storage():
+
+        for i in range(2):
+            if self.turn_off_storage():
+                break
             rospy.sleep(2)
-            pass
 
         self._monitor_feedback_listener.unsubscribe()
         self._monitor_control_listener.unsubscribe()
