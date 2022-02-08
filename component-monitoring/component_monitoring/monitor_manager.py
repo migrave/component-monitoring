@@ -127,9 +127,11 @@ class MonitorManager(Process):
 
         @return: None
         """
-        for component in self.monitors.keys():
-            self.send_info(component, "manager shutting down")
+        # TODO: To be fixed
+        #for component in self.monitors.keys():
+        #    self.send_info(component, "manager shutting down")
 
+        self.stop_monitors()
         if self.consumer is not None:
             self.consumer.unsubscribe()
             self.consumer.close()

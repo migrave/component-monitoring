@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import argparse
 import multiprocessing
+import signal
+import sys
 
 from component_monitoring.config.config_utils import ConfigUtils
 from component_monitoring.monitor_manager import MonitorManager
@@ -9,7 +11,13 @@ import logging
 
 from component_monitoring.storage.storage_manager import StorageManager
 
+
+def interrupt_handler(signum, frame):
+    sys.exit(-2)
+
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, interrupt_handler)
     parser = argparse.ArgumentParser(description='Monitor component status',
                                      epilog='EXAMPLE: python3 main.py 001 001')
     parser.add_argument('config_file', type=str,
@@ -56,9 +64,9 @@ if __name__ == '__main__':
 
     try:
         monitor_manager.start()
-        #storage_manager.start()
+        # storage_manager.start()
         monitor_manager.join()
-        #storage_manager.join()
+        # storage_manager.join()
 
     except (KeyboardInterrupt, SystemExit):
         monitor_manager.log_off()
