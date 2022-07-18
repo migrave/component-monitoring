@@ -117,6 +117,7 @@ class StorageManager(Process):
                 for monitor in message_body['monitors']:
                     self.monitors[monitor['name']] = monitor['topic']
             elif cmd == Command.STOP_STORE:
+                # TODO: One have to make sure there are no other components that are using this monitor before stopping the storage
                 for monitor in message_body['monitors']:
                     del self.monitors[monitor['name']]
             else:

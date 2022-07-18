@@ -169,7 +169,7 @@ class ComponentSMBase(FTSM):
             Parameters:
                 topics (List[str]): List of the topics to which the kafka consumer
                                     will be subscribing.
-                type (str): Name of the type of the listener, 'control' if the Kafka consumer should consume
+                listener_type (str): Name of the type of the listener, 'control' if the Kafka consumer should consume
                             control messages, 'feedback' if the Kafka consumer should consume events from the monitor
 
             Returns:
@@ -486,7 +486,7 @@ class ComponentSMBase(FTSM):
                 bool: True - turning on the data storage ended successfully
                       False - turning on the data storage ended with failure
         """
-        return True #return self.__switch(device='database', mode='on')
+        return self.__switch(device='database', mode='on')
 
     def turn_off_storage(self) -> bool:
         """
@@ -496,7 +496,7 @@ class ComponentSMBase(FTSM):
                 bool: True - turning off the data storage ended successfully
                       False - turning off the data storage ended with failure
         """
-        return True #return self.__switch(device='database', mode='off')
+        return self.__switch(device='database', mode='off')
 
     def running(self) -> str:
         """
