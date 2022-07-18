@@ -184,7 +184,7 @@ class ComponentSMBase(FTSM):
                 group_id=self._id + '_' + listener_type,
                 bootstrap_servers=self._monitoring_pipeline_server,
                 value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-                auto_commit_interval_ms=400,
+                auto_commit_interval_ms=100,
                 enable_auto_commit=True,
                 auto_offset_reset='latest',
                 consumer_timeout_ms=self._monitoring_timeout * 1000

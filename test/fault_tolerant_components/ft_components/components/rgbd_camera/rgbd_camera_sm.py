@@ -120,7 +120,7 @@ class RGBDCameraSM(ComponentSMBase):
                 if last_message is None:
                     # Count to three and try to turn on the monitoring one more time then
                     if self._no_feedback_counter >= 3:
-                        self._logger.warning('[{}][{}] Trying to turn on and off the monitoring and storage one more time.'.
+                        self._logger.warning('[{}][{}] Trying to turn off and on the monitoring and storage one more time.'.
                                              format(self.name, self._id))
                         success = self.turn_off_monitoring()
                         if success:
