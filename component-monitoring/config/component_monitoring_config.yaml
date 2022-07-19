@@ -20,7 +20,7 @@ storage:
     enable_storage: true
     control_channel: 'monitor_manager'
     config:
-      storage_name: sqlite
+      storage_name: mongo
     available_storages:
       sqlite:
         name: sqlite3
