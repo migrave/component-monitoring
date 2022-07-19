@@ -1,5 +1,6 @@
 import json
 import logging
+import rospy
 from multiprocessing import Process
 from typing import Optional, Dict, Union
 
@@ -34,9 +35,7 @@ class StorageManager(Process):
         self.storage_config = storage_config
         self.server_address = server_address
         self.monitors = dict()
-
-        self.logger = logging.getLogger("storage_manager")
-        self.logger.setLevel(logging.INFO)
+        self.components_monitors_relation = dict()
 
         with open('component_monitoring/messaging/schemas/control.json', 'r') as schema:
             self.control_schema = json.load(schema)
@@ -75,7 +74,6 @@ class StorageManager(Process):
             storage_manager = create_storage_component(storage_config)
 
             for message in self.consumer:
-                print(message)
                 if message.topic == self.storage_config['control_channel']:
                     # If the received message is on control channel,
                     # we need to update our kafka consumer.
@@ -97,6 +95,14 @@ class StorageManager(Process):
             topics = [self.storage_config['control_channel']]
             self.consumer.subscribe(topics)
 
+    def is_monitor_used_once(self, monitor):
+        use_num = 0
+
+        for component in self.components_monitors_relation:
+            if monitor['name'] in self.components_monitors_relation[component]:
+                use_num += 1
+        return use_num != 1
+
     def update_storage_event_listener(self, message):
         """
         Depending upon the received command signal, we attach or detach from kafka topics
@@ -104,28 +110,47 @@ class StorageManager(Process):
         try:
             validate(instance=message, schema=self.control_schema)
         except:
-            self.logger.warning("Control message could not be validated!")
-            self.logger.warning(message)
+            rospy.logwarn("Control message could not be validated!")
+            rospy.logwarn(message)
             return
 
         message_type = MessageType(message['message'])
+        components_monitors_relation = {}
+
         if self._id == message['to'] and MessageType.REQUEST == message_type:
             component = message['from']
             message_body = message['body']
             # process message body for STORE and STOP_STORE REQUEST
             cmd = Command(message_body['command'])
+
             if cmd == Command.START_STORE:
+                print(self.components_monitors_relation)
                 # TODO: Don't create a new monitor if it already exists
+                if component not in self.components_monitors_relation:
+                    self.components_monitors_relation[component] = []
+
                 print("Updating for the new topics")
                 for monitor in message_body['monitors']:
-                    self.monitors[monitor['name']] = monitor['topic']
+                    if monitor['name'] not in self.components_monitors_relation[component]:
+                        self.components_monitors_relation[component].append(monitor['name'])
+
+                    if monitor['name'] not in self.monitors.keys():
+                        self.monitors[monitor['name']] = monitor['topic']
+
             elif cmd == Command.STOP_STORE:
+                print(self.components_monitors_relation)
                 # TODO: One have to make sure there are no other components that are using this monitor before stopping the storage
                 for monitor in message_body['monitors']:
                     if monitor['name'] in self.monitors.keys():
-                        del self.monitors[monitor['name']]
+                        if self.is_monitor_used_once(monitor):
+                            rospy.logwarn(f"Removed monitor: {monitor['name']}")
+                            del self.monitors[monitor['name']]
+                        else:
+                            rospy.logwarn("Can not remove monitor, another component is using it.")
+                        self.components_monitors_relation[component].remove(monitor['name'])
             else:
                 return
+
             topics = list(self.monitors.copy().values())
             if topics != self.monitors.values():
                 topics.append(self.storage_config['control_channel'])
