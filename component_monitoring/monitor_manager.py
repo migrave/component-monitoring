@@ -85,13 +85,13 @@ class MonitorManager(Process):
 
         self.producer = KafkaProducer(bootstrap_servers=self.server_address, value_serializer=self.serialize)
         for msg in self.consumer:
-            self.logger.info(f"Processing {msg.value}")
             message = self.deserialize(msg)
             if not self.validate_control_message(message):
                 self.logger.warning("Control message could not be validated!")
                 self.logger.warning(msg)
             message_type = MessageType(message['message'])
             if self._id == message['to'] and MessageType.REQUEST == message_type:
+                self.logger.info(f"Processing {msg.value}")
                 component = message['from']
                 message_body = message['body']
                 # process message body for REQUEST
@@ -123,14 +123,10 @@ class MonitorManager(Process):
 
     def log_off(self) -> None:
         """
-        Inform the components, that the monitor manager is shutting down
+        Unsubscribe from Kafka topics and close connections
 
         @return: None
         """
-        # TODO: To be fixed
-        #for component in self.monitors.keys():
-        #    self.send_info(component, "manager shutting down")
-
         self.stop_monitors()
         if self.consumer is not None:
             self.consumer.unsubscribe()
@@ -309,6 +305,8 @@ class MonitorManager(Process):
         message['body'] = dict()
         message['body']['message'] = info
         self.__send_control_message(message)
+        self.logger.info(f"Sending info {message}")
+
 
     def send_response(self, receiver: str, code: ResponseCode, msg: Optional[Dict]) -> None:
         """
@@ -329,3 +327,4 @@ class MonitorManager(Process):
             for key, value in msg.items():
                 message['body'][key] = value
         self.__send_control_message(message)
+        self.logger.info(f"Sending response {message}")

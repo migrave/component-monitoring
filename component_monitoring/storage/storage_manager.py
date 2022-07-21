@@ -1,6 +1,5 @@
 import json
 import logging
-import rospy
 from multiprocessing import Process
 from typing import Optional, Dict, Union
 
@@ -36,6 +35,9 @@ class StorageManager(Process):
         self.server_address = server_address
         self.monitors = dict()
         self.components_monitors_relation = dict()
+
+        self.logger = logging.getLogger('storage_manager')
+        self.logger.setLevel(logging.INFO)
 
         with open('component_monitoring/messaging/schemas/control.json', 'r') as schema:
             self.control_schema = json.load(schema)
@@ -97,11 +99,10 @@ class StorageManager(Process):
 
     def is_monitor_used_once(self, monitor):
         use_num = 0
-
         for component in self.components_monitors_relation:
             if monitor['name'] in self.components_monitors_relation[component]:
                 use_num += 1
-        return use_num != 1
+        return use_num == 1
 
     def update_storage_event_listener(self, message):
         """
@@ -110,26 +111,26 @@ class StorageManager(Process):
         try:
             validate(instance=message, schema=self.control_schema)
         except:
-            rospy.logwarn("Control message could not be validated!")
-            rospy.logwarn(message)
+            self.logger.warning("Control message could not be validated!")
+            self.logger.warning(message)
             return
 
         message_type = MessageType(message['message'])
-        components_monitors_relation = {}
 
         if self._id == message['to'] and MessageType.REQUEST == message_type:
+            self.logger.info(f"Processing {message}")
             component = message['from']
             message_body = message['body']
             # process message body for STORE and STOP_STORE REQUEST
             cmd = Command(message_body['command'])
 
+            response = dict()
+            response['monitors'] = list()
+
             if cmd == Command.START_STORE:
-                print(self.components_monitors_relation)
-                # TODO: Don't create a new monitor if it already exists
                 if component not in self.components_monitors_relation:
                     self.components_monitors_relation[component] = []
 
-                print("Updating for the new topics")
                 for monitor in message_body['monitors']:
                     if monitor['name'] not in self.components_monitors_relation[component]:
                         self.components_monitors_relation[component].append(monitor['name'])
@@ -138,16 +139,34 @@ class StorageManager(Process):
                         self.monitors[monitor['name']] = monitor['topic']
 
             elif cmd == Command.STOP_STORE:
-                print(self.components_monitors_relation)
-                # TODO: One have to make sure there are no other components that are using this monitor before stopping the storage
                 for monitor in message_body['monitors']:
                     if monitor['name'] in self.monitors.keys():
+                        if component not in self.components_monitors_relation or \
+                                monitor['name'] not in self.components_monitors_relation[component]:
+                            self.logger.warning(
+                                f"Storage for component {component} for monitor {monitor['name']} could "
+                                f"not be stopped!")
+                            response['monitors'].append({"name": monitor['name'],
+                                                        "exception": f"Storage could not be stopped, component "
+                                                                     f"{component} and monitor are not related!"})
+                            self.send_response(component, ResponseCode.FAILURE, response)
+                            return
+
+                        # Make sure there are no other components that are using this monitor storage before stopping it
                         if self.is_monitor_used_once(monitor):
-                            rospy.logwarn(f"Removed monitor: {monitor['name']}")
+                            self.logger.warning(f"Removed storage for: {monitor['name']}")
                             del self.monitors[monitor['name']]
+                            self.components_monitors_relation[component].remove(monitor['name'])
                         else:
-                            rospy.logwarn("Can not remove monitor, another component is using it.")
-                        self.components_monitors_relation[component].remove(monitor['name'])
+                            self.logger.warning(f"Storage for component {component} for monitor {monitor['name']} could "
+                                                f"not be stopped, another component is using it!")
+                            self.components_monitors_relation[component].remove(monitor['name'])
+                            response['monitors'].append({"name": monitor['name'],
+                                                        "exception": f"Storage could not be stopped, another component "
+                                                                     f"is using it!"})
+                            self.send_response(component, ResponseCode.FAILURE, response)
+                            return
+
             else:
                 return
 
@@ -155,7 +174,10 @@ class StorageManager(Process):
             if topics != self.monitors.values():
                 topics.append(self.storage_config['control_channel'])
                 self.consumer.subscribe(topics)
-            self.send_response(component, ResponseCode.SUCCESS, None)
+            self.logger.warning(f"The used kafka topics are {topics}")
+
+            response['monitors'].append({"name": monitor['name']})
+            self.send_response(component, ResponseCode.SUCCESS, response)
 
     def send_response(self, receiver: str, code: ResponseCode, msg: Optional[Dict]) -> None:
         """
@@ -176,6 +198,7 @@ class StorageManager(Process):
             for key, value in msg.items():
                 message['body'][key] = value
         self.__send_control_message(message)
+        self.logger.info(f"Sending response {message}")
 
     @staticmethod
     def convert_message(message: ConsumerRecord, db_type: str) -> Union[EventLog, Dict]:
