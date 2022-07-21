@@ -474,8 +474,3 @@ Once the necessary files are created, one simply has to complete the mode config
 * Storage can be started again or stopped again as many times required just by sending the `'start_store'` or `'stop_store'` command signal respectively.
 * A better understanding can be found the following flowchart diagram:
 ![Storage Mechanism Flowchart](docs/StorageManager_Flowchart.png)
-
-## TO-DO:
-1. When component is registering, deregistering and registering for component-monitoring, it is able to run corresponding monitor only for the second trial.
-2. `storage_manager` should run the specific monitor if there is at least one subscriber and stop the monitor when there are no subscribers to it. 
-3. Finish the knowledge_base component.
